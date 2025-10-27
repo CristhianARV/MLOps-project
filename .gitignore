@@ -17,7 +17,6 @@ wheels/
 
 # For the moment ignore pyproject.toml and .lock
 pyproject.toml
-.python-version
 
 # Data files
 data/
