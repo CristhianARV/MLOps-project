@@ -10,3 +10,13 @@ Install dependencies with:
 uv add -r requirements.txt
 ```
 
+To activate the virtual environment, use:
+```bash
+source .venv/bin/activate
+```
+
+To deactivate the virtual environment, simply run:
+```bash
+deactivate
+```
+
