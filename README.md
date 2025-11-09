@@ -22,7 +22,7 @@ deactivate
 
 Create a freeze file to list dependencies with versions to reproduce the environment:
 ```bash
-uv freeze > requirements-freeze.txt
+uv pip freeze > requirements-freeze.txt
 ```
 
 To run the scripts of the project, use:
@@ -77,5 +77,13 @@ uv run src/evaluate.py model/ data/prepared/
 
 18 directories, 21 files
 ```
+
+# DVC
+
+Initialize DVC in the project with:
+```bash
+dvc init
+```
+You can activate the uv enviroment to use dvc commands.
 
 
