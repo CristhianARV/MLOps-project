@@ -20,7 +20,8 @@ pyproject.toml
 uv.lock
 
 # Data files
-data/
+data/raw/
+data/prepared/
 
 # Evaluation results
 evaluation/
