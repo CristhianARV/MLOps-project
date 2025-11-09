@@ -17,6 +17,7 @@ wheels/
 
 # For the moment ignore pyproject.toml and .lock
 pyproject.toml
+uv.lock
 
 # Data files
 data/
