@@ -21,3 +21,9 @@ uv.lock
 
 # Data files
 data/
+
+# Evaluation results
+evaluation/
+
+# The models
+model/
