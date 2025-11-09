@@ -9,22 +9,17 @@ wheels/
 # Virtual environments
 .venv
 
+# For the moment ignore pyproject.toml and .lock
+pyproject.toml
+uv.lock
+
 ## Jupyter Notebook
 .ipynb_checkpoints/
 
 ## macOS
 .DS_Store
 
-# For the moment ignore pyproject.toml and .lock
-pyproject.toml
-uv.lock
+## DVC
 
-# Data files
-data/raw/
-data/prepared/
-
-# Evaluation results
-evaluation/
-
-# The models
-model/
+# DVC will add new files after this line
+/model

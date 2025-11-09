@@ -87,3 +87,86 @@ dvc init
 You can activate the uv enviroment to use dvc commands.
 
 
+Prepare stage for data preparation:
+```bash
+dvc stage add -n prepare \
+    -p prepare \
+    -d src/prepare.py -d src/utils/seed.py -d data/raw \
+    -o data/prepared \
+    uv run src/prepare.py data/raw data/prepared
+```
+
+The values of the parameters is prepare which includes all the prepare parameters referenced in the params.yaml file.
+
+This stage has the src/prepare.py, the src/utils/seed.py and data/raw files as dependencies. If any of these files change, DVC will run the command python3.13 src/prepare.py data/raw data/prepared when using dvc repro.
+
+The output of this command is stored in the data/prepared directory.
+
+Train stage for model training:
+```bash
+dvc stage add -n train \
+    -p train \
+    -d src/train.py -d src/utils/seed.py -d data/prepared \
+    -o model \
+    uv run src/train.py data/prepared model
+```
+
+The values of the parameters is train which includes all the train parameters referenced in the params.yaml file.
+
+This stage has the src/train.py, the src/utils/seed.py and data/prepared files as dependencies. If any of these files change, DVC will run the command uv run src/train.py data/prepared model when using dvc repro.
+
+The output of this command is stored in the model directory.
+
+Evaluate stage for model evaluation:
+```bash
+dvc stage add -n evaluate \
+    -d src/evaluate.py -d model \
+    --metrics evaluation/metrics.json \
+    --plots evaluation/plots/confusion_matrix.png \
+    --plots evaluation/plots/pred_preview.png \
+    --plots evaluation/plots/training_history.png \
+    uv run src/evaluate.py model data/prepared
+```
+This stage has the src/evaluate.py and the model files as dependencies. If any of these files change, DVC will run the command uv run src/evaluate.py model data/prepared when using dvc repro.
+
+The script writes the model's metrics to evaluation/metrics.json, the confusion_matrix to evaluation/plots/confusion_matrix.png, the pred_preview to evaluation/plots/pred_preview.png and the training_history.png to evaluation/plots/training_history.png.
+
+Visualize the pipeline with:
+```bash
+> dvc dag
++--------------+ 
+| data/raw.dvc | 
++--------------+ 
+        *        
+        *        
+        *        
+  +---------+    
+  | prepare |    
+  +---------+    
+        *        
+        *        
+        *        
+    +-------+    
+    | train |    
+    +-------+    
+        *        
+        *        
+        *        
+  +----------+   
+  | evaluate |   
+  +----------+  
+```
+
+Important !!!
+
+Execute the pipeline
+
+Now that the pipeline is defined, you can execute it and reproduce the experiment with:
+```bash
+dvc repro
+```
+
+
+
+
+
