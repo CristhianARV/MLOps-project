@@ -166,6 +166,23 @@ Now that the pipeline is defined, you can execute it and reproduce the experimen
 dvc repro
 ```
 
+Compare changes in the pipeline with:
+```bash
+dvc params diff
+```
+
+And for metrics changes with:
+```bash
+dvc metrics diff
+```
+DVC displays the differences between HEAD and workspace, so you can easily compare the two iterations.
+
+
+Generate a report with:
+```bash
+dvc plots diff --open
+```
+
 
 
 
