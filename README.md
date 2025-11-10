@@ -182,6 +182,58 @@ Generate a report with:
 ```bash
 dvc plots diff --open
 ```
+## Google Cloud Storage Backend for DVC
+
+**Name du google project :** mlops-trash-classification
+
+**Name du bucket :** mlops-cris-bucket 
+
+Configure DVC to use a Google Storage remote bucket. The dvcstore is a user-defined path on the bucket. You can change it if needed:
+```bash
+dvc remote add -d data gs://mlops-cris-bucket/dvcstore
+```
+
+To get access to the GCS bucket
+```bash
+git clone <repo>
+
+# Authenticate to GCP (their own Google account)
+gcloud auth application-default login
+
+# (optional) make ADC path explicit
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+
+# Pull the data/artifacts
+dvc pull
+```
+
+## Set up  access to S3 bucket of the cloud provider
+
+Mettre dans le fichier .venv/bin/activate
+```bash
+# === Google Cloud & DVC integration ===
+export CLOUDSDK_CONFIG="$HOME/.config/gcloud"
+export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/application_default_credentials.json"
+export BROWSER=/usr/bin/wslview
+````
+
+
+```bash
+# Create the Google Service Account
+gcloud iam service-accounts create google-service-account \
+    --display-name="Google Service Account"
+
+# Set the permissions for the Google Service Account
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+    --member="serviceAccount:google-service-account@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="roles/storage.objectViewer"
+
+# Create the Google Service Account Key
+gcloud iam service-accounts keys create ~/.config/gcloud/google-service-account-key.json \
+    --iam-account=google-service-account@${GCP_PROJECT_ID}.iam.gserviceaccount.com
+```
+
+
 
 
 
