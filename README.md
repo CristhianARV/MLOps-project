@@ -1,5 +1,7 @@
 # ML Ops Project
 
+Site de model evolution : https://cristhianarv.github.io/MLOps-project/
+
 We will use uv to manage our virtual environment.
 
 Install uv first 
@@ -208,7 +210,7 @@ dvc pull
 ```
 
 ## Set up  access to S3 bucket of the cloud provider
-
+Si des erreurs avec gcloud faire cela avant:
 Mettre dans le fichier .venv/bin/activate
 ```bash
 # === Google Cloud & DVC integration ===
