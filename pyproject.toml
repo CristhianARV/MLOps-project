@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "dvc>=3.63.0",
+    "dvc[gs]>=3.63.0",
     "ipykernel>=7.1.0",
     "kagglehub>=0.3.13",
     "matplotlib>=3.10.7",

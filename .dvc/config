@@ -1,2 +1,5 @@
 [core]
     analytics = false
+    remote = data
+['remote "data"']
+    url = gs://mlops-cris-bucket/dvcstore

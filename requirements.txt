@@ -3,4 +3,4 @@ numpy
 matplotlib
 tensorflow
 pandas
-dvc
+dvc[gs]
