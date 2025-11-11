@@ -120,8 +120,8 @@ def main() -> None:
 
     # Export the model from the model store to the local model folder
     bentoml.models.export_model(
-        "celestial_bodies_classifier_model:latest",
-        f"{model_folder.absolute()}/celestial_bodies_classifier_model.bentomodel",
+        "trash_classifier_model:latest",
+        f"{model_folder.absolute()}/trash_classifier_model.bentomodel",
     )
 
     # Save the model history

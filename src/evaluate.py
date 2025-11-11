@@ -131,12 +131,12 @@ def main() -> None:
 
     # Import the model to the model store from a local model folder
     try:
-        bentoml.models.import_model(f"{model_folder.absolute()}/celestial_bodies_classifier_model.bentomodel")
+        bentoml.models.import_model(f"{model_folder.absolute()}/trash_classifier_model.bentomodel")
     except bentoml.exceptions.BentoMLException:
         print("Model already exists in the model store - skipping import.")
 
     # Load model
-    model = bentoml.keras.load_model("celestial_bodies_classifier_model")
+    model = bentoml.keras.load_model("trash_classifier_model")
     model_history = np.load(model_folder.absolute() / "history.npy", allow_pickle=True).item()
 
     # Log metrics
