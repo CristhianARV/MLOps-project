@@ -235,6 +235,14 @@ gcloud iam service-accounts keys create ~/.config/gcloud/google-service-account-
     --iam-account=google-service-account@${GCP_PROJECT_ID}.iam.gserviceaccount.com
 ```
 
+## Serve and deploy the model
+### Deploy model with FastAPI locally
+To serve the model locally using FastAPI, run the following command:
+```bash
+bentoml serve --working-dir ./src serve:TrashClassifierService
+
+
+
 
 
 
