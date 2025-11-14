@@ -93,7 +93,7 @@ jobs:
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
       - name: Import the BentoML model
         if: github.ref == 'refs/heads/main'
-        run: bentoml models import model/celestial_bodies_classifier_model.bentomodel
+        run: bentoml models import model/trash_classifier_model.bentomodel
       - name: Build the BentoML model artifact
         if: github.ref == 'refs/heads/main'
         run: bentoml build src
@@ -101,8 +101,8 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           # Containerize the Bento
-          bentoml containerize celestial_bodies_classifier:latest \
-            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/celestial-bodies-classifier:latest \
-            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/celestial-bodies-classifier:${{ github.sha }}
+          bentoml containerize trash_classifier:latest \
+            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/trash_classifier:latest \
+            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/trash-classifier:${{ github.sha }}
           # Push the container to the Container Registry
-          docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/celestial-bodies-classifier
+          docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/trash-classifier
