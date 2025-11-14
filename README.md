@@ -236,14 +236,129 @@ gcloud iam service-accounts keys create ~/.config/gcloud/google-service-account-
 ```
 
 ## Serve and deploy the model
-### Deploy model with FastAPI locally
+### Serve model locally with BentoML
 To serve the model locally using FastAPI, run the following command:
 ```bash
 bentoml serve --working-dir ./src serve:TrashClassifierService
+```
 
+This command starts a local server that hosts the model, allowing you to make predictions via API calls. You can access the API at localhost on the default port 3000.
 
+### Build and push model with BentoML and Docker locally
 
+BentoML model artifact is described in a bentofile.yaml file. Now that the bentofile.yaml is created, we can serve the model with commands like:
+```bash
+bentoml serve --working-dir ./src 
+``` 
 
+#### Build the BentoML model artifact
+Before containerizing the model, we need to build the BentoML model artifact using the following command:
+```bash
+> bentoml build src
+
+Successfully built Bento(tag="trash_classifier:znbg2n6arwfxaaav").
+
+Next steps: 
+
+* Deploy to BentoCloud:
+    $ bentoml deploy trash_classifier:znbg2n6arwfxaaav -n ${DEPLOYMENT_NAME}
+
+* Update an existing deployment on BentoCloud:
+    $ bentoml deployment update --bento trash_classifier:znbg2n6arwfxaaav ${DEPLOYMENT_NAME}
+
+* Containerize your Bento with `bentoml containerize`:
+    $ bentoml containerize trash_classifier:znbg2n6arwfxaaav 
+
+* Push to BentoCloud with `bentoml push`:
+    $ bentoml push trash_classifier:znbg2n6arwfxaaav 
+```
+### Containerize the BentoML model artifact with Docker
+To containerize the BentoML model artifact using Docker, run the following command:
+```bash
+> bentoml containerize trash_classifier:latest --image-tag trash-classifier:latest
+
+Successfully built Bento container for "trash_classifier:latest" with tag(s) "trash-classifier:latest"
+To run your newly built Bento container, run:
+    docker run --rm -p 3000:3000 trash-classifier:latest
+```
+
+`:latest` is the tag of the BentoML model artifact. It is a symlink to the latest version of the BentoML model artifact.
+
+### Test the containerized BentoML model artifact locally
+
+The BentoML model artifact is now containerized. To verify its behavior, serve the model artifact locally by running the Docker image:
+```bash
+docker run --rm -p 3000:3000 trash-classifier:latest
+```
+
+### Create a container registry
+#### Enable the Google Artifact Registry API
+```bash
+# Enable the Google Artifact Registry API
+gcloud services enable artifactregistry.googleapis.com
+```
+
+#### Create the Google Container Registry
+Export the repository name as an environment variable. Replace <my_repository_name> with a registy name of your choice. It has to be lowercase and words separated by hyphens.
+```bash
+export GCP_CONTAINER_REGISTRY_NAME=mlops-trash-classification-registry
+```
+
+Export the repository location as an environment variable. You can view the available locations at Cloud locations. You should ideally select a location close to where most of the expected traffic will come from. Replace <my_repository_location> with your own zone. For example, use europe-west6 for Switzerland (Zurich):
+
+```bash
+export GCP_CONTAINER_REGISTRY_LOCATION=europe-west6
+```
+
+Lastly, when creating the repository, remember to specify the repository format as `docker`.
+```bash
+# Create the Google Container Registry
+gcloud artifacts repositories create $GCP_CONTAINER_REGISTRY_NAME \
+    --repository-format=docker \
+    --location=$GCP_CONTAINER_REGISTRY_LOCATION
+
+Create request issued for: [mlops-trash-classification-registry]
+Waiting for operation [projects/mlops-trash-classification/locations/europe-west6/operations/2eca15a6-e354-4826-acae-131b5f3c97d0] to complete...done.                                                  
+Created repository [mlops-trash-classification-registry].
+```
+### Login to the remote Container Registry
+
+Authenticate with the Google Container Registry
+
+Configure gcloud to use the Google Container Registry as a Docker credential helper.
+```bash
+# Authenticate with the Google Container Registry
+gcloud auth configure-docker ${GCP_CONTAINER_REGISTRY_LOCATION}-docker.pkg.dev
+```
+
+Ensure your GCP_PROJECT_ID variable is still correctly exported:
+```bash
+# Check the exported project ID
+echo $GCP_PROJECT_ID
+```
+if empty, re-export it:
+```bash
+gcloud projects list
+export GCP_PROJECT_ID=mlops-trash-classification
+```
+
+Export the container registry host:
+```bash
+export GCP_CONTAINER_REGISTRY_HOST=${GCP_CONTAINER_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_CONTAINER_REGISTRY_NAME}
+```
+### Publish the BentoML model artifact Docker image to the container registry
+
+The BentoML model artifact Docker image can be published to the container registry with the following commands:
+```bash
+# Tag the local BentoML model artifact Docker image with the remote container registry host
+docker tag trash-classifier:latest $GCP_CONTAINER_REGISTRY_HOST/trash-classifier:latest
+
+# Push the BentoML model artifact Docker image to the container registry
+docker push $GCP_CONTAINER_REGISTRY_HOST/trash-classifier:latest
+```
+The image is now available in the container registry. You can use it from anywhere using Docker or Kubernetes.
+
+Open the container registry interface on the cloud provider and check that the artifact files have been uploaded.
 
 
 
