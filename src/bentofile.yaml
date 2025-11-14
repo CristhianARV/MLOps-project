@@ -1,0 +1,10 @@
+service: 'serve:TrashClassifierService'
+include:
+  - serve.py
+python:
+  packages:
+    - "tensorflow==2.20.0"
+    - "matplotlib==3.10.7"
+    - "pillow==12.0.0"
+docker:
+    python_version: "3.12"
