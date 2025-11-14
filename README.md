@@ -244,6 +244,21 @@ bentoml serve --working-dir ./src serve:TrashClassifierService
 
 This command starts a local server that hosts the model, allowing you to make predictions via API calls. You can access the API at localhost on the default port 3000.
 
+```json
+{
+  "prediction": "metal",
+  "probabilities": {
+    "cardboard": 0.01749773882329464,
+    "glass": 0.17597563564777374,
+    "metal": 0.6514637470245361,
+    "paper": 0.01539438683539629,
+    "plastic": 0.10146550089120865,
+    "trash": 0.03820298984646797
+  }
+}
+```
+`Wrong prediction the model need more training and a change of architecture.`
+
 ### Build and push model with BentoML and Docker locally
 
 BentoML model artifact is described in a bentofile.yaml file. Now that the bentofile.yaml is created, we can serve the model with commands like:
@@ -347,6 +362,25 @@ Export the container registry host:
 export GCP_CONTAINER_REGISTRY_HOST=${GCP_CONTAINER_REGISTRY_LOCATION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_CONTAINER_REGISTRY_NAME}
 ```
 ### Publish the BentoML model artifact Docker image to the container registry
+
+### Error de push denied !!!
+```bash
+nano ~/.docker/config.json
+{
+  "credsStore": "desktop.exe",
+  "auths": {
+    "europe-west6-docker.pkg.dev": {}
+  }
+}
+```
+
+```bash
+gcloud auth print-access-token | docker login \
+  -u oauth2accesstoken \
+  --password-stdin \
+  https://europe-west6-docker.pkg.dev
+```
+
 
 The BentoML model artifact Docker image can be published to the container registry with the following commands:
 ```bash
