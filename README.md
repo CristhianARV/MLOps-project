@@ -394,7 +394,40 @@ The image is now available in the container registry. You can use it from anywhe
 
 Open the container registry interface on the cloud provider and check that the artifact files have been uploaded.
 
+## Build and publish the model with BentoML and Docker in the CI/CD pipeline
+In this chapter, you will containerize and push the model to the container registry with the help of the CI/CD pipeline.
 
+
+### Set up access to the container registry of the cloud provider
+
+The container registry will need to be accessed inside the CI/CD pipeline to push the Docker image.
+
+Update the Google Service Account and its associated Google Service Account Key to access Google Cloud from the CI/CD pipeline without your own credentials.
+
+```bash
+# Set the Cloud Storage permissions for the Google Service Account
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+    --member="serviceAccount:google-service-account@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="roles/storage.objectAdmin"
+
+# Set the Artifact Registry permissions for the Google Service Account
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+    --member="serviceAccount:google-service-account@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="roles/artifactregistry.createOnPushWriter"
+```
+
+### Add contrainer resgistry CI/CD secrets
+
+Add the container registry secret to access the container registry from the CI/CD pipeline. Depending on the CI/CD platform you are using, the process will be different:
+
+Create the following new variables by going to the Settings section from the top header of your GitHub repository. Select Secrets and variables > Actions and select New repository secret:
+```bash
+echo $GCP_CONTAINER_REGISTRY_HOST
+```
+
+### Update the CI/CD pipeline configuration file
+
+You will adjust the pipeline to build and push the the docker image to the container registry.
 
 
 
