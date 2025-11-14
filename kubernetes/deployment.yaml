@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trash-classifier-deployment
+  labels:
+    app: trash-classifier
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trash-classifier
+  template:
+    metadata:
+      labels:
+        app: trash-classifier
+    spec:
+      containers:
+      - name: trash-classifier
+        image: europe-west6-docker.pkg.dev/mlops-trash-classification/mlops-trash-classification-registry/trash-classifier:latest

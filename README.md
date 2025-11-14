@@ -429,5 +429,116 @@ echo $GCP_CONTAINER_REGISTRY_HOST
 
 You will adjust the pipeline to build and push the the docker image to the container registry.
 
+## Deploy and access the model on Kubernetes
+In this chapter, you will learn how to deploy the model on Kubernetes and access it from a Kubernetes pod using the previous Docker image.
 
+This will allow the model to be used by other applications and services on a public endpoint accessible from anywhere.
+
+### Create the kubernetes cluster
+
+Create the Google Kubernetes cluster with the Google Cloud CLI.
+
+Export the cluster name as an environment variable. Replace <my_cluster_name> with a cluster name of your choice. It has to be lowercase and words separated by hyphens.
+```bash
+export GCP_K8S_CLUSTER_NAME=mlops-trash-classification-cluster
+export GCP_K8S_CLUSTER_ZONE=europe-west6-a
+```
+
+```bash
+# Create the Kubernetes cluster
+gcloud container clusters create \
+    --machine-type=e2-standard-2 \
+    --num-nodes=2 \
+    --zone=$GCP_K8S_CLUSTER_ZONE \
+    $GCP_K8S_CLUSTER_NAME
+
+Default change: VPC-native is the default mode during cluster creation for versions greater than 1.21.0-gke.1500. To create advanced routes based clusters, please pass the `--no-enable-ip-alias` flag
+Note: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s).
+Creating cluster mlops-trash-classification-cluster in europe-west6-a... Cluster is being health-checked (Kubernetes Control Plane is healthy)...done.                                 
+Created [https://container.googleapis.com/v1/projects/mlops-trash-classification/zones/europe-west6-a/clusters/mlops-trash-classification-cluster].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/europe-west6-a/mlops-trash-classification-cluster?project=mlops-trash-classification
+CRITICAL: ACTION REQUIRED: gke-gcloud-auth-plugin, which is needed for continued use of kubectl, was not found or is not executable. Install gke-gcloud-auth-plugin for use with kubectl by following https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#install_plugin
+kubeconfig entry generated for mlops-trash-classification-cluster.
+NAME                                LOCATION        MASTER_VERSION      MASTER_IP      MACHINE_TYPE   NODE_VERSION        NUM_NODES  STATUS
+mlops-trash-classification-cluster  europe-west6-a  1.33.5-gke.1201000  34.65.201.158  e2-standard-2  1.33.5-gke.1201000  2          RUNNING
+```
+
+### Validate kubectl can access the Kubernetes cluster
+Validate kubectl can access the Kubernetes cluster:
+```bash
+kubectl get namespaces
+
+NAME                          STATUS   AGE
+default                       Active   32m
+gke-managed-cim               Active   30m
+gke-managed-system            Active   30m
+gke-managed-volumepopulator   Active   30m
+gmp-public                    Active   30m
+gmp-system                    Active   30m
+kube-node-lease               Active   32m
+kube-public                   Active   32m
+kube-system                   Active   32m
+```
+### Create the Kubernetes configuration files
+
+In order to deploy the model on Kubernetes, you will need to create the Kubernetes configuration files. These files describe the deployment and service of the model.
+
+Create a new directory called kubernetes in the root of the project, then create a new file called deployment.yaml in the kubernetes directory with the following content.
+
+Replace the <docker_image> placeholder with the actual Docker image path:
+```bash
+sed -i "s|<docker_image>|$GCP_CONTAINER_REGISTRY_HOST/trash-classifier:latest|g" kubernetes/deployment.yaml
+```
+
+Create a new file called service.yaml
+
+The deployment.yaml file describes the deployment of the model. It contains the number of replicas, the image to use, and the labels to use.
+
+The service.yaml file describes the service of the model. It contains the type of service, the ports to use, and the labels to use.
+
+### Deploy the containerised model on Kubernetes
+
+To deploy the containerised Bento model artifact on Kubernetes, you will need to apply the Kubernetes configuration files.
+
+```bash
+# Apply the deployment
+kubectl apply -f kubernetes/deployment.yaml
+
+# Apply the service
+kubectl apply -f kubernetes/service.yaml
+```
+
+### Access the model 
+
+To access the model, you will need to find the external IP address of the service. You can do so with the following command:
+```bash
+kubectl describe services trash-classifier
+Name:                     trash-classifier-service
+Namespace:                default
+Labels:                   <none>
+Annotations:              cloud.google.com/neg: {"ingress":true}
+Selector:                 app=trash-classifier
+Type:                     LoadBalancer
+IP Family Policy:         SingleStack
+IP Families:              IPv4
+IP:                       34.118.236.175
+IPs:                      34.118.236.175
+LoadBalancer Ingress:     34.65.233.6 (VIP)
+Port:                     http  80/TCP
+TargetPort:               3000/TCP
+NodePort:                 http  30914/TCP
+Endpoints:                10.120.0.5:3000
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Internal Traffic Policy:  Cluster
+Events:
+  Type    Reason                Age    From                Message
+  ----    ------                ----   ----                -------
+  Normal  EnsuringLoadBalancer  4m8s   service-controller  Ensuring load balancer
+  Normal  EnsuredLoadBalancer   3m27s  service-controller  Ensured load balancer
+
+```
+The LoadBalancer Ingress field contains the external IP address of the service. In this case, it is 34.65.233.6
+
+Try to access the model at the port 80 using the external IP address of the service. You should be able to access the FastAPI documentation page at http://<load balancer ingress ip>:80. In this case, it is http://34.65.233.6:80.
 
