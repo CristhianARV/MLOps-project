@@ -6,3 +6,4 @@ pandas
 dvc[gs]
 bentoml
 pillow
+scikit-learn
