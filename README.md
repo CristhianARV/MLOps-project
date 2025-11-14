@@ -542,3 +542,31 @@ The LoadBalancer Ingress field contains the external IP address of the service. 
 
 Try to access the model at the port 80 using the external IP address of the service. You should be able to access the FastAPI documentation page at http://<load balancer ingress ip>:80. In this case, it is http://34.65.233.6:80.
 
+## Continuous deployment of the model with the CI/CD pipeline
+
+In this chapter, you will deploy the model to the Kubernetes cluster with the help of the CI/CD pipeline. You will use Kubernetes to deploy the model to the cluster and the pipeline to trigger the deployment.
+
+### Set up access to the Kubernetes cluster of the cloud provider
+The Kubernetes cluster will need to be accessed inside the CI/CD pipeline to deploy the Docker image.
+
+Update the Google Service Account and its associated Google Service Account Key to access Google Cloud from the CI/CD pipeline without your own credentials.
+
+```bash
+# Set the Kubernetes Cluster permissions for the Google Service Account
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+    --member="serviceAccount:google-service-account@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+    --role="roles/container.developer"
+```
+### Add Kubernetes CI/CD secrets
+
+Add the Kubernetes secrets to access the Kubernetes cluster from the CI/CD pipeline. Depending on the CI/CD platform you are using, the process will be different:
+
+Create the following new variables by going to the Settings section from the top header of your GitHub repository. Select Secrets and variables > Actions and select New repository secret:
+
+* GCP_K8S_CLUSTER_NAME: The name of the Kubernetes cluster (ex: mlops-surname-cluster, from the variable GCP_K8S_CLUSTER_NAME in the previous chapters)
+* GCP_K8S_CLUSTER_ZONE: The zone of the Kubernetes cluster (ex: europe-west6-a for Zurich, Switzerland, from the variable GCP_K8S_CLUSTER_ZONE in the previous chapters)
+Save the variables by selecting Add secret.
+
+### Update the CI/CD pipeline configuration file
+
+You will adjust the pipeline to deploy the model to the Kubernetes cluster.
