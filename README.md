@@ -727,3 +727,94 @@ You will now update the CI/CD configuration file to initiate a runner on the Kub
 Additionally, since the experiment is now being trained directly from the CI/CD pipeline, the workflow will be modified to automatically push the results to the remote storage using DVC and to commit the updated lock file to the repository automatically.
 
 As a result, when proposing changes to the model files in a branch, you no longer need to rundvc repro locally before pushing the changes with git push. After proposed changes are integrated into the main branch, you can obtain the updated dvc.lock file and model by using git pull and dvc pull.
+
+## Train the model on a Kubernetes pod
+
+You can now train your model on the cluster. However, some experiments may require specific hardware to run. For instance, training a deep learning model might require a GPU. This GPU could be shared among multiple teams for different purposes, so it is important to avoid monopolizing its use.
+
+Display the nodes names and labels
+```bash
+kubectl get nodes --show-labels
+```
+
+Export the name of the two nodes as environment variables. Replace the <my_node_1_name> and <my_node_2_name> placeholders with the names of your nodes (gke-mlops-surname-cluster-default-pool-d4f966ea-8rbn and gke-mlops-surname-cluster-default-pool-d4f966ea-p7qm in this example).
+
+```bash
+export K8S_NODE_1_NAME=gke-mlops-trash-classifi-default-pool-c2319d15-6wq6
+export K8S_NODE_2_NAME=gke-mlops-trash-classifi-default-pool-c2319d15-cq1m
+```
+### Labelize the nodes
+
+You can now labelize the nodes to be able to use the GPU node for the training of the model.
+```bash
+# Labelize the nodes
+kubectl label nodes $K8S_NODE_1_NAME gpu=true
+kubectl label nodes $K8S_NODE_2_NAME gpu=false
+```
+
+You can check the labels with the kubectl get nodes --show-labels command. You should see the node with the gpu=true/ gpu=false labels.
+
+### Adjust the self-hosted runner label
+
+The existing self-hosted runner will not be used for model training. Instead, it will function as a "base runner," dedicated to monitoring jobs and creating on-demand specialized pods for training the model with GPU support.
+
+To ensure the base runner operates effectively in this role, update its YAML configuration to prevent it from using the GPU-enabled node, as this is not required for its purpose. This change will also help keep the hardware resources available for the training job.
+
+Note the nodeSelector field that will select a node with a gpu=false label.
+
+To update the runner on the Kubernetes cluster, run the following commands:
+```bash
+kubectl delete pod github-runner
+kubectl apply -f kubernetes/runner.yaml
+```
+The existing pod will be terminated, and a new one will be created with the updated configuration.
+
+### Set self-hosted GPU runner
+We will now create a similar configuration file for the GPU runner, which is used exclusively during the train and report steps of the workflow to create a self-hosted GPU runner specifically for executing this step.
+
+The runner will use the same custom Docker image that we pushed to the GitHub Container Registry. This image is identified by the label GITHUB_RUNNER_LABEL which is set to the value gpu-runner.
+
+Create a new file called runner-gpu.yaml in the kubernetes directory with the following content. Replace <my_username> and <my_repository_name> with your own GitHub username and repository name.
+
+Note the nodeSelector field that will select a node with a gpu=true label.
+
+### Add Kubeconfig secret
+
+To enable the GPU runner to access the cluster, authentication is required. To obtain the credentials for your Google Cloud Kubernetes cluster, you can execute the following command to set up your kubeconfig file (~/.kube/config) with the necessary credentials:
+```bash
+# Get Kubernetes cluster credentials
+gcloud container clusters get-credentials $GCP_K8S_CLUSTER_NAME --zone $GCP_K8S_CLUSTER_ZONE
+```
+This updates the kubeconfig file (~/.kube/config) used by kubectl with the necessary information to connect to your Google Cloud Kubernetes cluster.
+
+Display the content of the ~/.kube/config file:
+```bash
+# Display the kubeconfig file
+cat ~/.kube/config
+```
+
+### Add Kubernetes CI/CD secrets
+Add the Kubernetes secrets to access the Kubernetes cluster from the CI/CD pipeline. Depending on the CI/CD platform you are using, the process will be different:
+
+Create the following new variable by going to the Settings section from the top header of your GitHub repository. Select Secrets and variables > Actions and select New repository secret:
+
+GCP_K8S_KUBECONFIG: The content of the ~/.kube/config file of the Kubernetes cluster.
+Save the variables by selecting Add secret.
+
+Save the variables by selecting Add secret.
+
+### Update the CI/CD configuration file
+
+You'll now update the CI/CD configuration file to start a runner on the Kubernetes cluster. Using the labels defined previously, you'll be able to start the training of the model on the node with the GPU.
+
+Update the .github/workflows/mlops.yaml file.
+
+When creating pull requests:
+
+*  the setup-runner job creates a self-hosted GPU runner.
+*  the train-and-report job runs on the self-hosted GPU runner. It trains the model and pushes the trained model to the remote bucket with DVC.
+*  the cleanup-runner job destroys the self-hosted GPU runner that was created. It also guarantees that the GPU runner pod is removed, even when if the previous step failed or was manually cancelled.
+
+When merging pull requests:
+
+* the publish-and-deploy runs on the main runner when merging pull requests. It retrieves the model with DVC, containerizes then deploys the model artifact.
