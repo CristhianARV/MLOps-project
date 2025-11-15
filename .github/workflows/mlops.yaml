@@ -103,7 +103,7 @@ jobs:
           # Publish the CML report
           cml comment update --target=pr --publish report.md
       
-    publish-and-deploy:
+  publish-and-deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
