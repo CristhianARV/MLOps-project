@@ -22,11 +22,11 @@ def get_model(
     model = tf.keras.models.Sequential(
         [
             tf.keras.layers.Conv2D(
-                conv_size, (3, 3), activation="relu", input_shape=image_shape
+                conv_size, (3, 3), activation="mish", input_shape=image_shape
             ),
             tf.keras.layers.MaxPooling2D((3, 3)),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(dense_size, activation="relu"),
+            tf.keras.layers.Dense(dense_size, activation="mish"),
             tf.keras.layers.Dense(output_classes),
         ]
     )
