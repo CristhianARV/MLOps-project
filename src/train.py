@@ -14,7 +14,8 @@ from utils.seed import set_seed
 
 def get_model(
     image_shape: Tuple[int, int, int],
-    conv_size: int,
+    conv_size_1: int,
+    conv_size_2: int,
     dense_size: int,
     output_classes: int,
 ) -> tf.keras.Model:
@@ -22,8 +23,9 @@ def get_model(
     model = tf.keras.models.Sequential(
         [
             tf.keras.layers.Conv2D(
-                conv_size, (3, 3), activation="mish", input_shape=image_shape
+                conv_size_1, (3, 3), activation="mish", input_shape=image_shape
             ),
+            tf.keras.layers.Conv2D(conv_size_2, (3, 3), activation="mish"),
             tf.keras.layers.MaxPooling2D((3, 3)),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(dense_size, activation="mish"),
@@ -53,7 +55,8 @@ def main() -> None:
     seed = train_params["seed"]
     lr = train_params["lr"]
     epochs = train_params["epochs"]
-    conv_size = train_params["conv_size"]
+    conv_size_1 = train_params["conv_size_1"]
+    conv_size_2 = train_params["conv_size_2"]
     dense_size = train_params["dense_size"]
     output_classes = train_params["output_classes"]
 
@@ -69,7 +72,7 @@ def main() -> None:
         labels = json.load(f)
 
     # Define the model
-    model = get_model(image_shape, conv_size, dense_size, output_classes)
+    model = get_model(image_shape, conv_size_1, conv_size_2, dense_size, output_classes)
     model.compile(
         optimizer=tf.keras.optimizers.Adam(lr),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
