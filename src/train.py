@@ -14,7 +14,8 @@ from utils.seed import set_seed
 
 def get_model(
     image_shape: Tuple[int, int, int],
-    conv_size: int,
+    conv_size_1: int,
+    conv_size_2: int,
     dense_size: int,
     output_classes: int,
 ) -> tf.keras.Model:
@@ -22,8 +23,9 @@ def get_model(
     model = tf.keras.models.Sequential(
         [
             tf.keras.layers.Conv2D(
-                conv_size, (3, 3), activation="mish", input_shape=image_shape
+                conv_size_1, (3, 3), activation="mish", input_shape=image_shape
             ),
+            tf.keras.layers.Conv2D(conv_size_2, (3, 3), activation="mish"),
             tf.keras.layers.MaxPooling2D((3, 3)),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(dense_size, activation="mish"),
