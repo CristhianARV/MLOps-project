@@ -10,5 +10,5 @@ train:
   epochs: 10
   conv_size_1: 64
   conv_size_2: 64
-  dense_size: 128
+  dense_size: 256
   output_classes: 6
