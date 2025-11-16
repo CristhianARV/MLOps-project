@@ -54,22 +54,22 @@ stages:
           lr: 0.001
           epochs: 5
           conv_size_1: 32
-          conv_size_2: 32
+          conv_size_2: 64
           dense_size: 64
           output_classes: 6
     outs:
     - path: model
       hash: md5
-      md5: 9d9f6b974b38022bb1b549e3a4e95fde.dir
-      size: 1928699
+      md5: 6bc0976c8a25b372482fc0a6651429f3.dir
+      size: 3839079
       nfiles: 2
   evaluate:
     cmd: python3.12 src/evaluate.py model data/prepared
     deps:
     - path: model
       hash: md5
-      md5: 9d9f6b974b38022bb1b549e3a4e95fde.dir
-      size: 1928699
+      md5: 6bc0976c8a25b372482fc0a6651429f3.dir
+      size: 3839079
       nfiles: 2
     - path: src/evaluate.py
       hash: md5
@@ -78,17 +78,17 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 307a47ff604632aaeca11cf3d3c10946
-      size: 62
+      md5: 2ac82df493c0ff613b106007a434a6f8
+      size: 63
     - path: evaluation/plots/confusion_matrix.png
       hash: md5
-      md5: 7271516b98525ec57ca58644c6c26ec1
-      size: 40983
+      md5: 3cc29d72bcb8eb3cd6eec606c6a77b72
+      size: 41364
     - path: evaluation/plots/pred_preview.png
       hash: md5
-      md5: a6fc311b7d91aac0a48742da1ac68191
-      size: 49397
+      md5: 5d40e70d574b6180ad5effe435a9b9de
+      size: 48857
     - path: evaluation/plots/training_history.png
       hash: md5
-      md5: d41bb178db3a0cd57943837116700739
-      size: 36044
+      md5: a2f7c12271892e2a56f62999d8055188
+      size: 34623
