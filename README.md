@@ -183,7 +183,107 @@ DVC displays the differences between HEAD and workspace, so you can easily compa
 Generate a report with:
 ```bash
 dvc plots diff --open
+
 ```
+## How to Use the Pipeline (with HITL)
+his section explains how to run the full pipeline, from baseline training to Human-in-the-Loop (HITL) improvement.
+
+---
+
+### 1️) Setup & Environment
+
+Create / update the virtual environment and install dependencies:
+
+uv add -r requirements.txt
+source .venv/bin/activate
+
+### 2) Run a Human-in-the-Loop (HITL) cycle
+1) Place new images to be classified in: data/unlabeled/
+2) Generate HITL queue (low-confidence samples) -> dvc repro select_hitl, this will run predict_unlabeled on data/unlabeled/ create data/hitl/predictions.csv and copy low-confidence images into: data/hitl/to_label/ 
+These images are the ones that need human review.
+3) Annotate in Label Studio : Install and launch Label Studio; pip install label-studio & label-studio start
+in the web UI:
+
+Create project “Waste Classifier HITL”
+
+Import images from data/hitl/to_label/
+
+Annotate / correct the labels (cardboard, glass, metal, paper, plastic, trash)
+
+Export annotations as JSON to: data/hitl/exports/labelstudio_export.json
+4) Merge corrected labels into the dataset : python3.12 src/merge_hitl_labels.py \data/hitl/exports/labelstudio_export.json \data/raw \data/hitl/labeled
+his will:
+
+copy relabeled images into data/hitl/labeled/<class>/
+
+copy them also into data/raw/<class>/ to enrich the training dataset
+5) Retrain and evaluate with updated data : dvc repro evaluate
+
+6) Monitor the pipeline with the Streamlit dashboard; streamlit run dashboard.py
+
+
+# Human-in-the-Loop (HITL) Workflow & Active Learning Architecture
+
+This project implements a **Human-in-the-Loop active learning pipeline** designed to continuously improve the waste-classification model by incorporating human feedback whenever the model is uncertain.
+
+The objectives of this workflow are to:
+- Automatically detect uncertain predictions
+- Route them to human validation
+- Reinforce the dataset with corrected labels
+- Retrain and evaluate the model automatically
+
+This approach improves the model where it is weakest and reduces unnecessary annotation workload.
+
+---
+
+## Repository Structure & HITL Components
+
+| File / Folder | Description |
+|---------------|-------------|
+| `src/predict_unlabeled.py` | Runs inference on unlabeled images and produces prediction confidence scores |
+| `src/select_hitl.py` | Selects low-confidence predictions and moves them into the HITL queue |
+| `src/merge_hitl_labels.py` | Merges Label Studio annotations back into the dataset |
+| `dashboard.py` | Streamlit dashboard for monitoring and control |
+| `dvc.yaml` | DVC pipeline orchestration |
+| `params.yaml` | Defines the HITL threshold |
+| `data/unlabeled/` | Incoming data without labels |
+| `data/hitl/to_label/` | Queue of images requiring human review |
+| `data/hitl/exports/` | Label Studio JSON export |
+| `data/hitl/labeled/` | Relabeled images by class |
+| `data/raw/` | Main dataset used for training |
+
+---
+
+## Complete HITL Cycle
+
+### Workflow steps
+
+flowchart LR
+    A[data/unlabeled images] -->|1. predict_unlabeled.py| B[predictions.csv]
+    B -->|2. select_hitl.py (confidence < threshold)| C[data/hitl/to_label/]
+    C -->|3. Human validation in Label Studio| D[labelstudio_export.json]
+    D -->|4. merge_hitl_labels.py| E[data/hitl/labeled/]
+    E -->|5. Added to training dataset| F[data/raw/]
+    F -->|6. dvc repro evaluate| G[Updated model + metrics]
+    G -->|Feedback loop| A
+
+## Core commands 
+
+### Generate prediction queue for HITL : dvc repro select_hitl
+
+### Launch Label studio and annotate : pip install label-studio & label-studio start
+### n the UI: 1) Create project “Waste Classifier HITL” 2) Import images from data/hitl/to_label/ 3) Annotate 4) Export JSON to : data/hitl/exports/labelstudio_export.json
+
+### Merge annotated labels : python3.12 src/merge_hitl_labels.py \data/hitl/exports/labelstudio_export.json \data/raw \data/hitl/labeled
+
+### Retain and evaluate : dvc repro evaluate
+
+## Streamlit Dashboard 
+
+### streamlit run dashboard.py
+### Dashboard features : Latest model performance (accuracy, loss), isual performance plots, HITL queue monitoring & preview, Labeled data statistics, Adjustable HITL threshold, Trigger button for full training loop (coming soon)
+
+
 ## Google Cloud Storage Backend for DVC
 
 **Name du google project :** mlops-trash-classification

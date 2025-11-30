@@ -30,3 +30,28 @@ stages:
     - evaluation/plots/confusion_matrix.png
     - evaluation/plots/pred_preview.png
     - evaluation/plots/training_history.png
+  predict_unlabeled:
+    cmd: python3.12 src/predict_unlabeled.py data/unlabeled data/prepared model data/hitl/predictions.csv
+    deps:
+      - src/predict_unlabeled.py
+      - data/unlabeled
+      - data/prepared/labels.json
+      - model/trash_classifier_model.bentomodel
+      - params.yaml
+    params:
+      - prepare.image_size
+      - prepare.grayscale
+      - train.seed
+    outs:
+      - data/hitl/predictions.csv
+
+  select_hitl:
+    cmd: python3.12 src/select_hitl.py
+    deps:
+      - src/select_hitl.py
+      - data/hitl/predictions.csv
+      - params.yaml
+    params:
+      - hitl.threshold
+    outs:
+      - data/hitl/to_label

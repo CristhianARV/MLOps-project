@@ -12,3 +12,6 @@ train:
   conv_size_2: 32
   dense_size: 64
   output_classes: 6
+
+hitl:
+  threshold: 0.75 # confiance limite pour ajouter un échantillon à l'entrainement

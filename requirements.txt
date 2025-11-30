@@ -7,3 +7,6 @@ dvc[gs]
 bentoml
 pillow
 scikit-learn
+PyYAML
+streamlit
+label-studio-sdk
