@@ -28,7 +28,7 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: e1f2029bee5907952daee7ba7f3dff15.dir
+      md5: a0c15ee2ec084c26cee369c84059754d.dir
       size: 57060341
       nfiles: 8
   train:
@@ -36,7 +36,7 @@ stages:
     deps:
     - path: data/prepared
       hash: md5
-      md5: e1f2029bee5907952daee7ba7f3dff15.dir
+      md5: a0c15ee2ec084c26cee369c84059754d.dir
       size: 57060341
       nfiles: 8
     - path: src/train.py
@@ -52,7 +52,7 @@ stages:
         train:
           seed: 77
           lr: 0.001
-          epochs: 10
+          epochs: 1
           conv_size_1: 16
           conv_size_2: 32
           dense_size: 64
@@ -60,35 +60,35 @@ stages:
     outs:
     - path: model
       hash: md5
-      md5: 93c8daaa1a64250bf9312c6d844a3949.dir
-      size: 1868655
+      md5: 0bb3c558d7b14f270b01304c9e33a106.dir
+      size: 1859695
       nfiles: 2
   evaluate:
     cmd: python3.12 src/evaluate.py model data/prepared
     deps:
     - path: model
       hash: md5
-      md5: 93c8daaa1a64250bf9312c6d844a3949.dir
-      size: 1868655
+      md5: 0bb3c558d7b14f270b01304c9e33a106.dir
+      size: 1859695
       nfiles: 2
     - path: src/evaluate.py
       hash: md5
-      md5: 2cfc22b35fb1b932a6ec8c46aa23fea4
-      size: 5480
+      md5: 29b66910acc6c39a5c14660be50a42d0
+      size: 7892
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: cab975b2bfe38490ea3e0efc6932354a
-      size: 63
+      md5: e40dfe7a170ceaf3c48d1c6ca54130b4
+      size: 62
     - path: evaluation/plots/confusion_matrix.png
       hash: md5
-      md5: 2db2da8c2334953e00a4c35aceb0ed7f
-      size: 40548
+      md5: 246ecf1e4c8cf07ac93d39410b8b5d21
+      size: 41151
     - path: evaluation/plots/pred_preview.png
       hash: md5
-      md5: f8619d4f62a677a0b1b5eaeb646c2f86
-      size: 49912
+      md5: 0fd2b2fac2e67a2fdfd7c5f4649879d1
+      size: 49947
     - path: evaluation/plots/training_history.png
       hash: md5
-      md5: dd0377798d3ba7356e8f897600275cf9
-      size: 37623
+      md5: f33558360cf2704d0d45c32fdab3f786
+      size: 18210
