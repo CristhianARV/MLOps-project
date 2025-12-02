@@ -7,7 +7,7 @@ prepare:
 train:
   seed: 77
   lr: 0.001
-  epochs: 1
+  epochs: 5
   conv_size_1: 16
   conv_size_2: 32
   dense_size: 64
