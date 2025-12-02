@@ -10,8 +10,6 @@ import bentoml
 from sklearn.metrics import classification_report
 from datetime import datetime
 
-dst_global_score = "data/scores/eval_scores.csv"
-dst_label_score = "data/scores/class_scores.csv"
 
 def push_scores_to_file(report : dict, dst : str):
     """
@@ -210,6 +208,9 @@ def main() -> None:
 
     # Push scores to files
     report = classification_report(y_true, y_pred, target_names=labels, output_dict=True)
+
+    dst_global_score = "data/scores/eval_scores.csv"
+    dst_label_score = "data/scores/class_scores.csv"
 
     # Push overall scores
     push_scores_to_file(report, dst_global_score)
