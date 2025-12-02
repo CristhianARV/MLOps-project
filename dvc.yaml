@@ -26,6 +26,8 @@ stages:
     - src/evaluate.py
     metrics:
     - evaluation/metrics.json
+    - data/scores/eval_scores.csv
+    - data/scores/class_scores.csv
     plots:
     - evaluation/plots/confusion_matrix.png
     - evaluation/plots/pred_preview.png

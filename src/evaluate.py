@@ -7,6 +7,69 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import bentoml
+from sklearn.metrics import classification_report
+from datetime import datetime
+
+
+def push_scores_to_file(report: dict, dst: str):
+    """
+    report: dict
+        Dictionary returned by sklearn.metrics.classification_report(output_dict=True)
+    """
+    path = Path(dst)
+    
+    # Assurer que le dossier existe
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    new_file = not path.is_file()
+    now = datetime.now().isoformat(timespec="seconds")
+
+    accuracy = report["accuracy"]
+    macro = report["macro avg"]
+    precision = macro["precision"]
+    recall = macro["recall"]
+    f1_score = macro["f1-score"]
+    support = macro["support"]
+
+    with path.open("a", encoding="utf-8") as f:
+        if new_file:
+            f.write("timestamp;accuracy;precision;recall;f1_score;support\n")
+        f.write(f"{now};{accuracy};{precision};{recall};{f1_score};{support}\n")
+
+
+def push_labels_score_to_file(report: dict, dst: str):
+    """
+    report: dict
+        Dictionary returned by sklearn.metrics.classification_report(output_dict=True)
+    """
+    now = datetime.now().isoformat(timespec="seconds")
+    metrics = ["precision", "recall", "f1-score", "support"]
+
+    # Charger les classes depuis classes.txt
+    with open("classes.txt", "r", encoding="utf-8") as f:
+        classes = f.read().strip().split(";")
+
+    dst_path = Path(dst)
+    # 🔥 Assurer que le dossier existe
+    dst_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Écrire l'en-tête si fichier inexistant
+    if not dst_path.is_file():
+        header = ["timestamp"]
+        for cls in classes:
+            for metric in metrics:
+                header.append(f"{cls}_{metric}")
+        with dst_path.open("a", encoding="utf-8") as f:
+            f.write(";".join(header) + "\n")
+
+    # Écrire la ligne de données
+    row = [now]
+    for cls in classes:
+        for metric in metrics:
+            row.append(str(report[cls][metric]))
+
+    with dst_path.open("a", encoding="utf-8") as f:
+        f.write(";".join(row) + "\n")
 
 
 def get_training_plot(model_history: dict) -> plt.Figure:
@@ -138,6 +201,21 @@ def main() -> None:
     # Load model
     model = bentoml.keras.load_model("trash_classifier_model")
     model_history = np.load(model_folder.absolute() / "history.npy", allow_pickle=True).item()
+
+    preds = model.predict(ds_test)
+    y_true = tf.concat([y for _, y in ds_test], axis=0).numpy()
+    y_pred = tf.argmax(preds, axis=1).numpy()
+
+    # Push scores to files
+    report = classification_report(y_true, y_pred, target_names=labels, output_dict=True)
+
+    dst_global_score = "data/scores/eval_scores.csv"
+    dst_label_score = "data/scores/class_scores.csv"
+
+    # Push overall scores
+    push_scores_to_file(report, dst_global_score)
+    # Push label-wise scores
+    push_labels_score_to_file(report, dst_label_score)
 
     # Log metrics
     val_loss, val_acc = model.evaluate(ds_test)
