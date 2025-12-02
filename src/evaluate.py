@@ -11,18 +11,19 @@ from sklearn.metrics import classification_report
 from datetime import datetime
 
 
-def push_scores_to_file(report : dict, dst : str):
+def push_scores_to_file(report: dict, dst: str):
     """
     report: dict
         Dictionary returned by sklearn.metrics.classification_report(output_dict=True)
     """
-    
     path = Path(dst)
-    new_file = not path.is_file()
+    
+    # Assurer que le dossier existe
+    path.parent.mkdir(parents=True, exist_ok=True)
 
+    new_file = not path.is_file()
     now = datetime.now().isoformat(timespec="seconds")
 
-    # extraction depuis le dict sklearn
     accuracy = report["accuracy"]
     macro = report["macro avg"]
     precision = macro["precision"]
@@ -33,24 +34,24 @@ def push_scores_to_file(report : dict, dst : str):
     with path.open("a", encoding="utf-8") as f:
         if new_file:
             f.write("timestamp;accuracy;precision;recall;f1_score;support\n")
-        
         f.write(f"{now};{accuracy};{precision};{recall};{f1_score};{support}\n")
 
 
-def push_labels_score_to_file(report : dict, dst : str):
+def push_labels_score_to_file(report: dict, dst: str):
     """
     report: dict
         Dictionary returned by sklearn.metrics.classification_report(output_dict=True)
     """
-    
     now = datetime.now().isoformat(timespec="seconds")
-    metrics = ['precision', 'recall', 'f1-score', 'support']
+    metrics = ["precision", "recall", "f1-score", "support"]
 
     # Charger les classes depuis classes.txt
     with open("classes.txt", "r", encoding="utf-8") as f:
         classes = f.read().strip().split(";")
 
     dst_path = Path(dst)
+    # 🔥 Assurer que le dossier existe
+    dst_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Écrire l'en-tête si fichier inexistant
     if not dst_path.is_file():
@@ -58,7 +59,6 @@ def push_labels_score_to_file(report : dict, dst : str):
         for cls in classes:
             for metric in metrics:
                 header.append(f"{cls}_{metric}")
-
         with dst_path.open("a", encoding="utf-8") as f:
             f.write(";".join(header) + "\n")
 
