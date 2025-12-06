@@ -9,21 +9,44 @@ import tensorflow as tf
 import bentoml
 from sklearn.metrics import classification_report
 from datetime import datetime
+from google.cloud import storage
+from google.cloud.exceptions import NotFound
+import pandas as pd
 
 
-def push_scores_to_file(report: dict, dst: str):
+
+def push_scores_to_file(
+    report: dict,
+    bucket_name: str,
+    blob_name: str = "scores/eval_scores.csv",
+) -> None:
     """
-    report: dict
+    Append global scores to a CSV stored in a Google Cloud Storage bucket.
+
+    report:
         Dictionary returned by sklearn.metrics.classification_report(output_dict=True)
+    bucket_name:
+        Name of the GCS bucket
+    blob_name:
+        Path of the CSV inside the bucket (default: scores/eval_scores.csv)
     """
-    path = Path(dst)
-    
-    # Assurer que le dossier existe
-    path.parent.mkdir(parents=True, exist_ok=True)
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
 
-    new_file = not path.is_file()
+    # Récupérer le CSV existant (s'il existe)
+    try:
+        csv_text = blob.download_as_text()
+    except Exception:
+        # Blob n'existe pas encore
+        csv_text = ""
+
+    # Ajouter l'en-tête si fichier vide
+    if not csv_text:
+        csv_text = "timestamp;accuracy;precision;recall;f1_score;support\n"
+
+    # Extraire les scores du report
     now = datetime.now().isoformat(timespec="seconds")
-
     accuracy = report["accuracy"]
     macro = report["macro avg"]
     precision = macro["precision"]
@@ -31,45 +54,63 @@ def push_scores_to_file(report: dict, dst: str):
     f1_score = macro["f1-score"]
     support = macro["support"]
 
-    with path.open("a", encoding="utf-8") as f:
-        if new_file:
-            f.write("timestamp;accuracy;precision;recall;f1_score;support\n")
-        f.write(f"{now};{accuracy};{precision};{recall};{f1_score};{support}\n")
+    # Ajouter une nouvelle ligne
+    line = f"{now};{accuracy};{precision};{recall};{f1_score};{support}\n"
+    csv_text += line
+
+    # Réécrire le CSV dans le bucket
+    blob.upload_from_string(csv_text, content_type="text/csv")
 
 
-def push_labels_score_to_file(report: dict, dst: str):
+
+def push_class_scores_to_file(
+    report: dict,
+    bucket_name: str,
+    blob_name: str = "scores/class_scores.csv",
+    classes_file: str = "classes.txt",
+) -> None:
     """
-    report: dict
-        Dictionary returned by sklearn.metrics.classification_report(output_dict=True)
+    Récupère un CSV dans un bucket GCS, ajoute une ligne avec les scores
+    par classe, puis réécrit le CSV modifié dans le bucket.
+
+    - report : dict issu de classification_report (sklearn) en format json
+    - bucket_name : nom du bucket GCS
+    - blob_name : chemin/nom du fichier CSV dans le bucket
+    - classes_file : fichier local contenant les classes (séparées par ';')
     """
     now = datetime.now().isoformat(timespec="seconds")
+    classes = pd.read_csv(classes_file, sep=";", header=None).values.tolist()[0]
     metrics = ["precision", "recall", "f1-score", "support"]
 
-    # Charger les classes depuis classes.txt
-    with open("classes.txt", "r", encoding="utf-8") as f:
-        classes = f.read().strip().split(";")
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
 
-    dst_path = Path(dst)
-    # 🔥 Assurer que le dossier existe
-    dst_path.parent.mkdir(parents=True, exist_ok=True)
+    # 1) Récupérer le contenu actuel du CSV dans le bucket (s'il existe)
+    try:
+        csv_text = blob.download_as_text(encoding="utf-8")
+        has_content = bool(csv_text.strip())
+    except NotFound:
+        csv_text = ""
+        has_content = False
 
-    # Écrire l'en-tête si fichier inexistant
-    if not dst_path.is_file():
-        header = ["timestamp"]
+    # 2) Générer l'en-tête si le fichier est nouveau ou vide
+    if not has_content:
+        header_parts = ["timestamp"]
         for cls in classes:
             for metric in metrics:
-                header.append(f"{cls}_{metric}")
-        with dst_path.open("a", encoding="utf-8") as f:
-            f.write(";".join(header) + "\n")
+                header_parts.append(f"{cls}_{metric}")
+        csv_text = ";".join(header_parts) + "\n"
 
-    # Écrire la ligne de données
-    row = [now]
+    # 3) Construire la nouvelle ligne
+    row_parts = [now]
     for cls in classes:
         for metric in metrics:
-            row.append(str(report[cls][metric]))
+            row_parts.append(str(report[cls][metric]))
+    csv_text += ";".join(row_parts) + "\n"
 
-    with dst_path.open("a", encoding="utf-8") as f:
-        f.write(";".join(row) + "\n")
+    # 4) Réécrire le CSV dans le bucket
+    blob.upload_from_string(csv_text, content_type="text/csv")
 
 
 def get_training_plot(model_history: dict) -> plt.Figure:
@@ -209,13 +250,10 @@ def main() -> None:
     # Push scores to files
     report = classification_report(y_true, y_pred, target_names=labels, output_dict=True)
 
-    dst_global_score = "data/scores/eval_scores.csv"
-    dst_label_score = "data/scores/class_scores.csv"
-
     # Push overall scores
-    push_scores_to_file(report, dst_global_score)
+    push_scores_to_file(report, bucket_name="mlops-cris-bucket")
     # Push label-wise scores
-    push_labels_score_to_file(report, dst_label_score)
+    push_class_scores_to_file(report, bucket_name="mlops-cris-bucket")
 
     # Log metrics
     val_loss, val_acc = model.evaluate(ds_test)
