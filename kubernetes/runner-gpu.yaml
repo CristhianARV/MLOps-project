@@ -30,11 +30,11 @@ spec:
       resources:
         limits:
           cpu: "2"
-          memory: "8Gi"
+          memory: "10Gi"
           nvidia.com/gpu: "1"
         requests:
-          cpu: "1"
-          memory: "6Gi"
+          cpu: "2"
+          memory: "8Gi"
           nvidia.com/gpu: "1"
   nodeSelector:
     gpu: "true"
