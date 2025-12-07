@@ -24,9 +24,6 @@ stages:
     deps:
     - model
     - src/evaluate.py
-    outs:
-    - data/scores/class_scores.csv
-    - data/scores/eval_scores.csv
     metrics:
     - evaluation/metrics.json
     plots:
