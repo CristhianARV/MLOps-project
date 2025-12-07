@@ -5,6 +5,9 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras import regularizers
+from tensorflow.keras.optimizers import Adam
 import yaml
 import bentoml
 from PIL.Image import Image
@@ -14,25 +17,34 @@ from utils.seed import set_seed
 
 def get_model(
     image_shape: Tuple[int, int, int],
-    conv_size_1: int,
-    conv_size_2: int,
+    dropout_1: float,
     dense_size: int,
+    regularization_l2_1: float,
+    dropout_2: float,
     output_classes: int,
+    regularization_l2_2: float,
 ) -> tf.keras.Model:
-    """Create a simple CNN model"""
-    model = tf.keras.models.Sequential(
-        [
-            tf.keras.layers.Conv2D(
-                conv_size_1, (3, 3), activation="mish", input_shape=image_shape
-            ),
-            tf.keras.layers.Conv2D(conv_size_2, (3, 3), activation="mish"),
-            tf.keras.layers.MaxPooling2D((3, 3)),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(dense_size, activation="mish"),
-            tf.keras.layers.Dense(output_classes),
-        ]
+    """Transfer learning model using MobileNetV2 as base model"""
+
+    base_model = tf.keras.applications.MobileNetV2(
+        input_shape=image_shape,
+        include_top=False,
+        weights='imagenet'
     )
+
+    base_model.trainable = True
+
+    model = tf.keras.models.Sequential([
+        base_model,
+        tf.keras.layers.GlobalAveragePooling2D(),
+        tf.keras.layers.Dropout(dropout_1),
+        tf.keras.layers.Dense(dense_size, activation='mish', kernel_regularizer=regularizers.l2(regularization_l2_1)),
+        tf.keras.layers.Dropout(dropout_2),
+        tf.keras.layers.Dense(output_classes, kernel_regularizer=regularizers.l2(regularization_l2_2))
+    ])
+
     return model
+
 
 
 def main() -> None:
@@ -55,8 +67,10 @@ def main() -> None:
     seed = train_params["seed"]
     lr = train_params["lr"]
     epochs = train_params["epochs"]
-    conv_size_1 = train_params["conv_size_1"]
-    conv_size_2 = train_params["conv_size_2"]
+    dropout_1 = train_params["dropout_1"]
+    dropout_2 = train_params["dropout_2"]
+    regularization_l2_1 = train_params["regularization_l2_1"]
+    regularization_l2_2 = train_params["regularization_l2_2"]
     dense_size = train_params["dense_size"]
     output_classes = train_params["output_classes"]
 
@@ -72,19 +86,29 @@ def main() -> None:
         labels = json.load(f)
 
     # Define the model
-    model = get_model(image_shape, conv_size_1, conv_size_2, dense_size, output_classes)
+    model = get_model(image_shape, 
+                      dropout_1, 
+                      dense_size, 
+                      regularization_l2_1, 
+                      dropout_2, 
+                      output_classes, 
+                      regularization_l2_2)
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(lr),
+        optimizer=Adam(learning_rate=lr),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
     )
     model.summary()
+
+    lr_scheduler = ReduceLROnPlateau(monitor='val_loss', factor=0.3, patience=3, min_lr=1e-6)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=4, restore_best_weights=True)
 
     # Train the model
     model.fit(
         ds_train,
         epochs=epochs,
         validation_data=ds_test,
+        callbacks=[lr_scheduler, early_stopping]
     )
 
     # Save the model

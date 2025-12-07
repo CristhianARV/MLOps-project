@@ -1,7 +1,7 @@
 ipykernel
 numpy
 matplotlib
-tensorflow
+tensorflow[and-cuda]
 pandas
 dvc[gs]
 bentoml
