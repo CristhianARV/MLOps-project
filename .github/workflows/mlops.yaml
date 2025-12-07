@@ -197,7 +197,9 @@ jobs:
             -f kubernetes/service.yaml
             
   cleanup-runner:
-    needs: train-and-report
+    needs: 
+      - train-and-report
+      - publish-and-deploy
     runs-on: [self-hosted, base-runner]
     # Run this job if the event is a pull request and regardless of whether the previous job failed or was cancelled
     if: github.event_name == 'pull_request' && (success() || failure() || cancelled())
@@ -221,4 +223,4 @@ jobs:
           echo "$KUBECONFIG_DATA" > kubeconfig
           export KUBECONFIG=kubeconfig
           export GITHUB_RUN_ID="${{ github.run_id }}"
-          envsubst < kubernetes/runner-gpu.yaml | kubectl delete --wait=false -f -
+          envsubst < kubernetes/runner-gpu.yaml | kubectl delete --wait=false -f - || true
