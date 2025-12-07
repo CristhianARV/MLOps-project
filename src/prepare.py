@@ -16,7 +16,7 @@ def get_preview_plot(ds: tf.data.Dataset, labels: List[str]) -> plt.Figure:
     for images, label_idxs in ds.take(1):
         for i in range(10):
             plt.subplot(2, 5, i + 1)
-            plt.imshow(images[i].numpy().astype("uint8"), cmap="gray")
+            plt.imshow(images[i].numpy().astype("uint8"))
             plt.title(labels[label_idxs[i].numpy()])
             plt.axis("off")
 
@@ -38,6 +38,7 @@ def main() -> None:
     split = prepare_params["split"]
     image_size = prepare_params["image_size"]
     grayscale = prepare_params["grayscale"]
+    batch_size = prepare_params["batch_size"]
 
     # Set seed for reproducibility
     set_seed(seed)
@@ -48,7 +49,7 @@ def main() -> None:
         labels="inferred",
         label_mode="int",
         color_mode="grayscale" if grayscale else "rgb",
-        batch_size=32,
+        batch_size=batch_size,
         image_size=image_size,
         shuffle=True,
         seed=seed,
