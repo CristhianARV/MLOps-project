@@ -162,7 +162,7 @@ jobs:
         with:
           credentials_json: '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}'
       - name: Check model
-        run: dvc repro --pull
+        run: dvc pull model/trash_classifier_model.bentomodel -v
       
       - name: Log in to the Container registry
         uses: docker/login-action@v3
