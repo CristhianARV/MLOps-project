@@ -12,7 +12,7 @@ spec:
         sizeLimit: 6Gi
   containers:
     - name: github-runner-gpu
-      image: ghcr.io/cristhianarv/mlops-project/github-runner:latest
+      image: ghcr.io/cristhianarv/mlops-project/github-runner-gpu:latest
       # We mount a shared memory volume for training
       volumeMounts:
         - name: dshm
@@ -30,11 +30,11 @@ spec:
       resources:
         limits:
           cpu: "2"
-          memory: "8Gi"
+          memory: "10Gi"
           nvidia.com/gpu: "1"
         requests:
-          cpu: "1"
-          memory: "6Gi"
+          cpu: "2"
+          memory: "9Gi"
           nvidia.com/gpu: "1"
   nodeSelector:
     gpu: "true"
