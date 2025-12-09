@@ -53,7 +53,7 @@ stages:
         train:
           seed: 77
           lr: 0.0001
-          epochs: 12
+          epochs: 9
           dropout_1: 0.3
           dense_size: 128
           regularization_l2_1: 0.001
@@ -63,16 +63,16 @@ stages:
     outs:
     - path: model
       hash: md5
-      md5: 070b41ed58b6c1a6bae679e76f6c92fb.dir
-      size: 26012867
+      md5: fb96dbda226f80a422cde0194454fe4c.dir
+      size: 26056308
       nfiles: 2
   evaluate:
     cmd: python3.12 src/evaluate.py model data/prepared
     deps:
     - path: model
       hash: md5
-      md5: 070b41ed58b6c1a6bae679e76f6c92fb.dir
-      size: 26012867
+      md5: fb96dbda226f80a422cde0194454fe4c.dir
+      size: 26056308
       nfiles: 2
     - path: src/evaluate.py
       hash: md5
@@ -93,5 +93,5 @@ stages:
       size: 524582
     - path: evaluation/plots/training_history.png
       hash: md5
-      md5: d9243aae7eb5bfc1b88d5271735ba834
-      size: 33999
+      md5: fa583450d1e487d3fb3859f6d704daa8
+      size: 32088
