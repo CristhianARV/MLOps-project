@@ -2,3 +2,6 @@
 /prepared
 /raw2
 /uncertain_images
+annotations.csv
+annotations_hitl1.csv
+labels_raw2_test.csv
