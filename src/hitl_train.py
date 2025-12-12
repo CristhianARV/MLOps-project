@@ -50,9 +50,9 @@ def get_model(
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("Arguments error. Usage:\n")
-        print("\tpython3 hitl_train.py <prepared-dataset-folder> <model-folder>\n")
+        print("\tpython3 hitl_train.py <prepared-dataset-folder> <prepared-hitl-dataset-folder> <model-folder>\n")
         exit(1)
 
     # Load parameters
@@ -61,7 +61,8 @@ def main() -> None:
 
 
     prepared_dataset_folder = Path(sys.argv[1])
-    model_folder = Path(sys.argv[2])
+    prepared_hitl_dataset_folder = Path(sys.argv[2])
+    model_folder = Path(sys.argv[3])
 
     image_size = prepare_params["image_size"]
     grayscale = prepare_params["grayscale"]
@@ -83,7 +84,7 @@ def main() -> None:
     # Load data
     ds_train = tf.data.Dataset.load(str(prepared_dataset_folder / "train"))
     ds_test = tf.data.Dataset.load(str(prepared_dataset_folder / "test"))
-    ds_hitl = tf.data.Dataset.load(str(prepared_dataset_folder / "hitl"))
+    ds_hitl = tf.data.Dataset.load(str(prepared_hitl_dataset_folder / "hitl"))
 
     # Combine original training data with HITL data
     ds_train = ds_train.concatenate(ds_hitl)
