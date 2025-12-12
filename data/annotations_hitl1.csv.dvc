@@ -1,0 +1,5 @@
+outs:
+- md5: 75807b62c30f03f683e30084d7179fb5
+  size: 6591
+  hash: md5
+  path: annotations_hitl1.csv
