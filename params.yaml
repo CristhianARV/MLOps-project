@@ -5,10 +5,14 @@ prepare:
   grayscale: False
   batch_size: 32
 
+hitl_selection:
+  seed: 77
+  threshold: 0.8
+
 train:
   seed: 77
   lr: 0.0001
-  epochs: 9
+  epochs: 11
   dropout_1: 0.3
   dense_size: 128
   regularization_l2_1: 0.001
