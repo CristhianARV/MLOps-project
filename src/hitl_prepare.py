@@ -82,7 +82,7 @@ def main() -> None:
     )
     class_names = ds_hitl.class_names
 
-    hitl_prepared_dataset_folder = Path('data/prepared_hitl/hitl')
+    hitl_prepared_dataset_folder = Path('data/prepared_hitl/')
 
     if not hitl_prepared_dataset_folder.exists():
         hitl_prepared_dataset_folder.mkdir(parents=True)
