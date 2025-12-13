@@ -1,4 +1,4 @@
-# python3 src/hitl_prepare.py ./data/uncertain_images ./data/prepared/ ./data/annotations_hitl1.csv
+# python3 src/hitl_prepare.py ./data/uncertain_images  ./data/annotations_hitl1.csv
 import json
 import sys
 from pathlib import Path
@@ -44,17 +44,16 @@ def transform_labels_to_int(label : str) -> int:
 
 
 def main() -> None:
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 3:
         print("Arguments error. Usage:\n")
-        print("\tpython3 hitl_prepare.py <uncertain-images-dataset-folder> <hitl-prepared-dataset-folder> <labels-with-labels-studio.csv>\n")
+        print("\tpython3 hitl_prepare.py <uncertain-images-dataset-folder> <labels-with-labels-studio.csv>\n")
         exit(1)
 
     # Load parameters
     prepare_params = yaml.safe_load(open("hitl_parameters.yaml"))["prepare"]
 
     uncertain_images_dataset_folder = Path(sys.argv[1])
-    hitl_prepared_dataset_folder = Path(sys.argv[2])
-    labels_csv_path = Path(sys.argv[3])
+    labels_csv_path = Path(sys.argv[2])
 
     seed = prepare_params["seed"]
     image_size = prepare_params["image_size"]
@@ -82,6 +81,8 @@ def main() -> None:
         seed=seed,
     )
     class_names = ds_hitl.class_names
+
+    hitl_prepared_dataset_folder = Path('data/prepared_hitl/hitl')
 
     if not hitl_prepared_dataset_folder.exists():
         hitl_prepared_dataset_folder.mkdir(parents=True)
