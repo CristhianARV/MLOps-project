@@ -95,3 +95,113 @@ stages:
       hash: md5
       md5: fa583450d1e487d3fb3859f6d704daa8
       size: 32088
+  hitl_prepare:
+    cmd: python3.12 src/hitl_prepare.py data/uncertain_images 
+      data/annotations_hitl1.csv
+    deps:
+    - path: data/annotations_hitl1.csv
+      hash: md5
+      md5: 75807b62c30f03f683e30084d7179fb5
+      size: 6591
+    - path: data/uncertain_images
+      hash: md5
+      md5: cd069076876cfb730e18c3d369d06acb.dir
+      size: 17955017
+      nfiles: 975
+    - path: src/hitl_prepare.py
+      hash: md5
+      md5: 54f443a7b1c7d170c3748a24fa3cb3c9
+      size: 3151
+    - path: src/utils/seed.py
+      hash: md5
+      md5: 963a551c177450f50e4f11bd1a9ab2c7
+      size: 437
+    params:
+      params.yaml:
+        prepare:
+          seed: 77
+          split: 0.2
+          image_size:
+          - 256
+          - 256
+          grayscale: false
+          batch_size: 32
+    outs:
+    - path: data/prepared_hitl
+      hash: md5
+      md5: 0ebb2916280303c98ae967e8ec354115.dir
+      size: 767181163
+      nfiles: 5
+  hitl_train:
+    cmd: python3.12 src/hitl_train.py data/prepared data/prepared_hitl model
+    deps:
+    - path: data/prepared
+      hash: md5
+      md5: 2e7c712e498add96d5ce106ae8f325bb.dir
+      size: 10932713372
+      nfiles: 8
+    - path: data/prepared_hitl
+      hash: md5
+      md5: 0ebb2916280303c98ae967e8ec354115.dir
+      size: 767181163
+      nfiles: 5
+    - path: src/hitl_train.py
+      hash: md5
+      md5: 32418a00ed7d4704bf7d6506b482ee7d
+      size: 5258
+    - path: src/utils/seed.py
+      hash: md5
+      md5: 963a551c177450f50e4f11bd1a9ab2c7
+      size: 437
+    params:
+      params.yaml:
+        train:
+          seed: 77
+          lr: 0.0001
+          epochs: 9
+          dropout_1: 0.3
+          dense_size: 128
+          regularization_l2_1: 0.001
+          dropout_2: 0.3
+          output_classes: 6
+          regularization_l2_2: 0.001
+    outs:
+    - path: model
+      hash: md5
+      md5: dfa7218efe99db1b630c5aaca13c3b41.dir
+      size: 25926731
+      nfiles: 2
+  hitl_evaluation:
+    cmd: python3.12 src/evaluate.py model data/prepared
+    deps:
+    - path: data/prepared
+      hash: md5
+      md5: 2e7c712e498add96d5ce106ae8f325bb.dir
+      size: 10932713372
+      nfiles: 8
+    - path: model
+      hash: md5
+      md5: dfa7218efe99db1b630c5aaca13c3b41.dir
+      size: 25926731
+      nfiles: 2
+    - path: src/evaluate.py
+      hash: md5
+      md5: 7aba7b6b729f95960914b51ba0a1a5e2
+      size: 9264
+    outs:
+    - path: evaluation/metrics.json
+      hash: md5
+      md5: 3c369f2bc6a84902311e1d5f76c97de4
+      size: 63
+    - path: evaluation/plots/confusion_matrix.png
+      hash: md5
+      md5: 3dc0cff3eb6faaeb0e706006a80114eb
+      size: 39098
+    - path: evaluation/plots/pred_preview.png
+      hash: md5
+      md5: cfa31252898829c86b13fed2740d39ff
+      size: 521298
+    - path: evaluation/plots/training_history.png
+      hash: md5
+      md5: a6344ac04820d44972bfce6a2c031f15
+      size: 16606

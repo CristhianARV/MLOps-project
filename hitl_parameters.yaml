@@ -1,0 +1,21 @@
+prepare:
+  seed: 77
+  split: 0.2
+  image_size: [256, 256]
+  grayscale: False
+  batch_size: 32
+
+hitl_selection:
+  seed: 77
+  threshold: 0.8
+
+train:
+  seed: 77
+  lr: 0.0001
+  epochs: 1
+  dropout_1: 0.3
+  dense_size: 128
+  regularization_l2_1: 0.001
+  dropout_2: 0.3
+  output_classes: 6
+  regularization_l2_2: 0.001

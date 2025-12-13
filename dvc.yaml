@@ -2,31 +2,47 @@ stages:
   prepare:
     cmd: python3.12 src/prepare.py data/raw data/prepared
     deps:
-    - data/raw
-    - src/prepare.py
-    - src/utils/seed.py
+      - data/raw
+      - src/prepare.py
+      - src/utils/seed.py
     params:
-    - prepare
+      - prepare
     outs:
-    - data/prepared
-  train:
-    cmd: python3.12 src/train.py data/prepared model
+      - data/prepared
+
+  hitl_prepare:
+    cmd: python3.12 src/hitl_prepare.py data/uncertain_images data/annotations_hitl1.csv
     deps:
-    - data/prepared
-    - src/train.py
-    - src/utils/seed.py
+      - data/uncertain_images
+      - data/annotations_hitl1.csv
+      - src/hitl_prepare.py
+      - src/utils/seed.py
     params:
-    - train
+      - prepare
     outs:
-    - model
-  evaluate:
+      - data/prepared_hitl
+
+  hitl_train:
+    cmd: python3.12 src/hitl_train.py data/prepared data/prepared_hitl model
+    deps:
+      - data/prepared_hitl
+      - data/prepared
+      - src/hitl_train.py
+      - src/utils/seed.py
+    params:
+      - train
+    outs:
+      - model
+
+  hitl_evaluation:
     cmd: python3.12 src/evaluate.py model data/prepared
     deps:
-    - model
-    - src/evaluate.py
+      - model
+      - data/prepared
+      - src/evaluate.py
     metrics:
-    - evaluation/metrics.json
+      - evaluation/metrics.json
     plots:
-    - evaluation/plots/confusion_matrix.png
-    - evaluation/plots/pred_preview.png
-    - evaluation/plots/training_history.png
+      - evaluation/plots/confusion_matrix.png
+      - evaluation/plots/pred_preview.png
+      - evaluation/plots/training_history.png 
