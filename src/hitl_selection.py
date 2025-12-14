@@ -44,7 +44,7 @@ def main() -> None:
     grayscale = prepare_params["grayscale"]
     batch_size = prepare_params["batch_size"]
 
-    threshold = hitl_params["threshold"]
+    num_uncertain = hitl_params["num_uncertain"]
 
     # Set seed for reproducibility
     set_seed(seed)
@@ -79,9 +79,10 @@ def main() -> None:
     probs = tf.nn.softmax(preds, axis=1).numpy()
     y_pred = np.argmax(probs, axis=-1)
 
-    # Select uncertain images
-    uncertain_indices = [i for i, p in enumerate(probs) if np.max(p) < threshold]
-    print("Indices des images incertaines :", uncertain_indices)
+    # Select uncertain images (x images with lowest max probability)
+    max_probs = np.max(probs, axis=1)
+    uncertain_indices = np.argsort(max_probs)[:num_uncertain]
+    print(f"Indices des {num_uncertain} images les plus incertaines :", uncertain_indices)
 
     # 6) Copier les fichiers d'origine correspondants
     for i in uncertain_indices:

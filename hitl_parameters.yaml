@@ -7,7 +7,7 @@ prepare:
 
 hitl_selection:
   seed: 77
-  threshold: 0.8
+  num_uncertain: 1000
 
 train:
   seed: 77
