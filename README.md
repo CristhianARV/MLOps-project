@@ -844,14 +844,19 @@ You can find all the generated assets, including SQLite3 database storage label_
 
 2. Create a new project, for example named "Trash Classification".
 
+![Project name](images/project_name.png)
+
 3. Select the **Data Import** tab and click on the Upload File button. Select all the images from the uncertain_images folder.
 
+![Data import](images/data_import.png)
+
 4. Select the **Labeling Setup** tab and choose Image Classification under the Computer Vision menu.
+
+![Labeling setup](images/labeling_setup.png)
 
 5. Under Labeling Interface select Code and paste the following configuration:
 
 ```bash
-
 <View>
     <Image name="image" value="$image"/>
     <Choices name="choice" toName="image">
@@ -864,6 +869,8 @@ You can find all the generated assets, including SQLite3 database storage label_
     </Choices>
 </View>
 ```
+![Classification](images/classification.png)
+
 6. Click on Save in the top right corner.
 
 ## Labeling
@@ -872,4 +879,8 @@ You can find all the generated assets, including SQLite3 database storage label_
 
 2. Start labeling the images by selecting the appropriate class for each image.
 
+![Labeling](images/labeling.png)
+
 3. Export the labeled data by clicking on the Export button in the top right corner and selecting csv format.
+
+![Export](images/export.png)
