@@ -818,3 +818,58 @@ When creating pull requests:
 When merging pull requests:
 
 * the publish-and-deploy runs on the main runner when merging pull requests. It retrieves the model with DVC, containerizes then deploys the model artifact.
+
+# Label Studio
+
+##  Run with Docker
+
+To avoid version conflicts, run Label Studio with Docker by following these steps:
+
+```bash
+docker pull heartexlabs/label-studio:latest
+docker run -it -p 8080:8080 -v $(pwd)/mydata:/label-studio/data heartexlabs/label-studio:latest
+```
+
+Alternatively, you can run the following command to create a fresh mydata directory with the appropriate permissions before starting Label Studio:
+
+```bash
+rm -rf $(pwd)/mydata && mkdir -p $(pwd)/mydata && chmod 777 $(pwd)/mydata && docker run -it -p 8080:8080 -v $(pwd)/mydata:/label-studio/data heartexlabs/label-studio:latest
+```
+
+You can find all the generated assets, including SQLite3 database storage label_studio.sqlite3 and uploaded files, in the ./mydata directory.
+
+## Configure
+
+1. Create or connect you to your account on Label Studio.
+
+2. Create a new project, for example named "Trash Classification".
+
+3. Select the **Data Import** tab and click on the Upload File button. Select all the images from the uncertain_images folder.
+
+4. Select the **Labeling Setup** tab and choose Image Classification under the Computer Vision menu.
+
+5. Under Labeling Interface select Code and paste the following configuration:
+
+```bash
+
+<View>
+    <Image name="image" value="$image"/>
+    <Choices name="choice" toName="image">
+        <Choice value="cardboard"/>
+        <Choice value="glass"/>
+        <Choice value="metal"/>
+        <Choice value="paper"/>
+        <Choice value="plastic"/>
+        <Choice value="trash"/>
+    </Choices>
+</View>
+```
+6. Click on Save in the top right corner.
+
+## Labeling
+
+1. Go to the **Labeling** tab.
+
+2. Start labeling the images by selecting the appropriate class for each image.
+
+3. Export the labeled data by clicking on the Export button in the top right corner and selecting csv format.
